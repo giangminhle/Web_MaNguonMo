@@ -1,0 +1,203 @@
+{% load static humanize %}
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <title>Quản Lý Kho Hàng Từng Chi Nhánh</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+      body { background-color: #f5f6f8; font-family: "Segoe UI", sans-serif; padding-bottom: 50px; }
+      .branch-card { border-radius: 12px; overflow: hidden; border: none; }
+      .branch-header { background: #00b14f; color: white; padding: 12px 20px; font-weight: bold; }
+      .table-responsive { max-height: 400px; overflow-y: auto; }
+      .table th { position: sticky; top: 0; background: #f8f9fa; z-index: 1; }
+    </style>
+  </head>
+  <body class="container mt-4">
+    
+    <div class="row align-items-center mb-4 g-3">
+      <div class="col-lg-3">
+        <h4 class="text-success fw-bold mb-0"><i class="fas fa-boxes"></i> KHO HÀNG</h4>
+      </div>
+      
+      <div class="col-lg-4">
+        <form method="GET" action="">
+          <div class="input-group shadow-sm">
+            <input type="text" name="q" class="form-control border-success" placeholder="Nhập tên sản phẩm cần tìm..." value="{{ query }}">
+            <button class="btn btn-success" type="submit"><i class="fas fa-search"></i> Tìm</button>
+            {% if query %}
+            <a href="{% url 'ds_san_pham' %}" class="btn btn-outline-secondary"><i class="fas fa-times"></i></a>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+
+      <div class="col-lg-5 text-lg-end">
+        <a href="{% url 'xuat_excel_san_pham' %}" class="btn btn-success fw-bold shadow-sm mb-1">
+            <i class="fas fa-file-export"></i> Xuất Excel
+        </a>
+        <button type="button" class="btn btn-warning fw-bold shadow-sm mb-1" data-bs-toggle="modal" data-bs-target="#importExcelModal">
+            <i class="fas fa-file-import"></i> Nhập Excel
+        </button>
+        <a href="{% url 'home' %}" class="btn btn-secondary shadow-sm mb-1"><i class="fas fa-arrow-left"></i></a>
+      </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}success{% endif %} alert-dismissible fade show shadow-sm">
+                <b>Thông báo:</b> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+      <div class="col-lg-8">
+        {% for dd in cac_dia_diem %}
+        <div class="card branch-card shadow mb-4">
+          <div class="branch-header d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-map-marker-alt me-2"></i>{{ dd.ten_dia_diem }}</span>
+            <span class="badge bg-light text-success">{{ dd.kho_hang.count }} Món</span>
+          </div>
+
+          <div class="table-responsive bg-white">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="text-muted small">
+                <tr>
+                  <th class="ps-3">Sản Phẩm</th>
+                  <th>Giá Bán</th>
+                  <th>Số Lượng Tồn</th>
+                  <th class="text-center">Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for sp in dd.kho_hang.all %}
+                {% if not query or query|lower in sp.ten_sp|lower %}
+                <tr>
+                  <td class="ps-3 d-flex align-items-center gap-3">
+                    {% if sp.hinh_anh %}
+                    <img src="{{ sp.hinh_anh.url }}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid #eee;" />
+                    {% else %}
+                    <div style="width: 40px; height: 40px; background: #e9ecef; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #adb5bd;">
+                      <i class="fas fa-box"></i>
+                    </div>
+                    {% endif %}
+                    <span class="fw-bold text-dark">{{ sp.ten_sp }}</span>
+                  </td>
+                  <td class="text-danger fw-bold">{{ sp.gia|floatformat:0|intcomma }}đ</td>
+                  <td>
+                    {% if sp.so_luong <= 5 %}
+                    <span class="badge bg-danger">{{ sp.so_luong }} (Sắp hết)</span>
+                    {% else %}
+                    <span class="badge bg-success">{{ sp.so_luong }}</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-center">
+                    <a href="{% url 'sua_san_pham' sp.pk %}" class="btn btn-sm btn-light text-primary border me-1"><i class="fas fa-edit"></i></a>
+                    <a href="{% url 'xoa_san_pham' sp.pk %}" onclick="return confirm('Chắc chắn muốn xóa {{ sp.ten_sp }}?')" class="btn btn-sm btn-light text-danger border"><i class="fas fa-trash"></i></a>
+                  </td>
+                </tr>
+                {% endif %}
+                {% empty %}
+                <tr><td colspan="4" class="text-center py-4 text-muted fst-italic">Kho hàng cụm này đang trống.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endfor %}
+
+        <div class="d-flex justify-content-center mt-3">
+          <ul class="pagination pagination-sm">
+            {% if cac_dia_diem.has_previous %}<li class="page-item"><a class="page-link text-success" href="?page={{ cac_dia_diem.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">&laquo;</a></li>{% endif %}
+            {% for i in cac_dia_diem.paginator.page_range %}
+              <li class="page-item {% if cac_dia_diem.number == i %}active{% endif %}">
+                <a class="page-link {% if cac_dia_diem.number == i %}bg-success text-white border-success{% else %}text-success{% endif %}" href="?page={{ i }}{% if query %}&q={{ query }}{% endif %}">{{ i }}</a>
+              </li>
+            {% endfor %}
+            {% if cac_dia_diem.has_next %}<li class="page-item"><a class="page-link text-success" href="?page={{ cac_dia_diem.next_page_number }}{% if query %}&q={{ query }}{% endif %}">&raquo;</a></li>{% endif %}
+          </ul>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
+          <div class="card-header bg-warning text-dark py-3 fw-bold">
+            <i class="fas fa-plus-circle"></i> Thêm Sản Phẩm Mới Vào Kho
+          </div>
+          <div class="card-body bg-white p-4">
+            <form method="POST" enctype="multipart/form-data">
+              {% csrf_token %}
+              {% for field in form %}
+              <div class="mb-3">
+                <label class="form-label small fw-bold text-muted">{{ field.label }}</label>
+                {{ field }}
+              </div>
+              {% endfor %}
+              <script>
+                  document.querySelectorAll('input, select').forEach(e => e.classList.add('form-control'));
+                  document.querySelectorAll('select').forEach(e => e.classList.add('form-select'));
+              </script>
+              <div class="mt-4">
+                <button type="submit" class="btn btn-success w-100 fw-bold py-2"><i class="fas fa-save me-1"></i> Lưu Vào Kho</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="importExcelModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <form method="POST" action="{% url 'nhap_excel_san_pham' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="modal-header bg-warning border-0">
+                        <h5 class="modal-title fw-bold text-dark"><i class="fas fa-file-excel"></i> Cập Nhật Hàng Loạt Tồn Kho</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-success small">
+                            <b>Hướng dẫn:</b>
+                            <ol class="mb-0 mt-1 ps-3">
+                                <li>Bấm nút <b>Xuất Excel</b> ở màn hình ngoài để tải file kho hàng gốc.</li>
+                                <li>Mở file Excel, sửa cột <b>Số Lượng Tồn</b> hoặc <b>Giá Bán</b>. <br><span class="text-danger">Tuyệt đối không sửa đổi cột "ID SP".</span></li>
+                                <li>Upload lại file Excel đó vào đây và bấm Cập Nhật để Xem Trước.</li>
+                            </ol>
+                        </div>
+                        <label class="fw-bold small mb-2">Chọn file Excel (.xlsx):</label>
+                        <input type="file" name="excel_file" class="form-control form-control-lg" accept=".xlsx" required>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-success fw-bold px-4">Bắt Đầu Xem Trước</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll('input[type="file"]').forEach(function (input) {
+          if(input.name === 'excel_file') return;
+          var previewImg = document.createElement("img");
+          previewImg.style.display = "none"; previewImg.style.maxWidth = "100%"; previewImg.style.maxHeight = "200px";
+          previewImg.style.marginTop = "10px"; previewImg.style.borderRadius = "8px"; previewImg.style.border = "2px dashed #00b14f"; previewImg.style.objectFit = "contain";
+          input.parentNode.insertBefore(previewImg, input.nextSibling);
+          input.addEventListener("change", function (e) {
+            var file = e.target.files[0];
+            if (file && file.type.startsWith("image/")) {
+              var reader = new FileReader();
+              reader.onload = function (event) { previewImg.src = event.target.result; previewImg.style.display = "block"; };
+              reader.readAsDataURL(file);
+            } else { previewImg.style.display = "none"; previewImg.src = ""; }
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

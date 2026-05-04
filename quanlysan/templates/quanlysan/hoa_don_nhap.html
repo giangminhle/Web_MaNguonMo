@@ -1,0 +1,167 @@
+{% load static humanize %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <title>Hóa Đơn / Phiếu Nhập Xuất Kho</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        body { background-color: #e9ecef; font-family: "Segoe UI", sans-serif; }
+        
+        .invoice-box { 
+            background: white; 
+            max-width: 900px; 
+            margin: 20px auto 40px auto; 
+            padding: 50px; 
+            border-radius: 8px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+        }
+        
+        .invoice-header { border-bottom: 3px solid #00b14f; padding-bottom: 20px; margin-bottom: 30px; }
+        .invoice-header.export-header { border-bottom: 3px solid #dc3545; } /* Đổi màu cho phiếu xuất */
+        
+        .signature-box { margin-top: 60px; text-align: center; }
+        
+        /* CẤU HÌNH KHI BẤM NÚT IN (PRINT) */
+        @media print {
+            body { background: white; margin: 0; padding: 0; }
+            .invoice-box { box-shadow: none; max-width: 100%; margin: 0; padding: 20px; border: none; }
+            .no-print { display: none !important; }
+            
+            /* Lệnh ngắt trang cực xịn: Nếu có cả 2 phiếu, nó tự in ra 2 tờ giấy khác nhau */
+            .page-break { page-break-before: always; } 
+        }
+    </style>
+</head>
+<body>
+
+    <div class="text-center mt-4 mb-2 no-print">
+        <button onclick="window.print()" class="btn btn-success btn-lg fw-bold px-5 me-2 shadow-sm">
+            <i class="fas fa-print me-2"></i> IN HÓA ĐƠN
+        </button>
+        <a href="{% url 'ds_san_pham' %}" class="btn btn-secondary btn-lg fw-bold px-4 shadow-sm">
+            <i class="fas fa-arrow-left me-2"></i> Quay Lại Kho Hàng
+        </a>
+    </div>
+
+    {% if ds_nhap %}
+    <div class="invoice-box">
+        <div class="invoice-header d-flex justify-content-between align-items-end">
+            <div>
+                <h1 class="text-success fw-bolder mb-1"><i class="fas fa-bolt text-warning"></i> SÂN 333</h1>
+                <p class="text-muted small mb-0 fw-bold">Hệ thống sân bóng đá chuyên nghiệp</p>
+                <p class="text-muted small mb-0">Hotline: 0987.654.321</p>
+            </div>
+            <div class="text-end">
+                <h3 class="fw-bold text-uppercase text-success mb-2">PHIẾU NHẬP KHO</h3>
+                <p class="mb-0 small"><strong>Ngày lập:</strong> {{ ngay_nhap|date:"d/m/Y - H:i" }}</p>
+                <p class="mb-0 small"><strong>Nhân viên:</strong> {{ nguoi_nhap.last_name }} {{ nguoi_nhap.first_name }}</p>
+            </div>
+        </div>
+
+        <table class="table table-bordered align-middle mt-4">
+            <thead class="table-success text-center align-middle">
+                <tr>
+                    <th width="5%">STT</th>
+                    <th width="35%">Tên Sản Phẩm</th>
+                    <th width="30%">Cụm Sân (Chi Nhánh)</th>
+                    <th width="15%">Giá Bán</th>
+                    <th width="15%">Số Lượng Nhập</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in ds_nhap %}
+                <tr>
+                    <td class="text-center text-muted">{{ forloop.counter }}</td>
+                    <td class="fw-bold text-dark">{{ item.ten_sp }}</td>
+                    <td class="text-center">{{ item.cum_san }}</td>
+                    <td class="text-end">{{ item.gia|floatformat:0|intcomma }}đ</td>
+                    <td class="text-center text-success fw-bold fs-5">+{{ item.sl_thay_doi }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="row signature-box">
+            <div class="col-4">
+                <p class="fw-bold mb-5">Người Lập Phiếu</p>
+                <p class="text-muted fst-italic">(Ký, ghi rõ họ tên)</p>
+            </div>
+            <div class="col-4">
+                <p class="fw-bold mb-5">Thủ Kho Nhập</p>
+                <p class="text-muted fst-italic">(Ký, ghi rõ họ tên)</p>
+            </div>
+            <div class="col-4">
+                <p class="fw-bold mb-5">Giám Đốc / Quản Lý</p>
+                <p class="text-muted fst-italic">(Ký, ghi rõ họ tên)</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+
+    {% if ds_xuat %}
+    <div class="invoice-box {% if ds_nhap %}page-break{% endif %}">
+        <div class="invoice-header export-header d-flex justify-content-between align-items-end">
+            <div>
+                <h1 class="text-danger fw-bolder mb-1"><i class="fas fa-bolt text-warning"></i> SÂN 333</h1>
+                <p class="text-muted small mb-0 fw-bold">Hệ thống sân bóng đá chuyên nghiệp</p>
+                <p class="text-muted small mb-0">Hotline: 0987.654.321</p>
+            </div>
+            <div class="text-end">
+                <h3 class="fw-bold text-uppercase text-danger mb-2">PHIẾU NHẬP KHO</h3>
+                <p class="mb-0 small"><strong>Ngày lập:</strong> {{ ngay_nhap|date:"d/m/Y - H:i" }}</p>
+                <p class="mb-0 small"><strong>Nhân viên:</strong> {{ nguoi_nhap.last_name }} {{ nguoi_nhap.first_name }}</p>
+            </div>
+        </div>
+
+        <table class="table table-bordered align-middle mt-4">
+            <thead class="table-danger text-center align-middle">
+                <tr>
+                    <th width="5%">STT</th>
+                    <th width="35%">Tên Sản Phẩm</th>
+                    <th width="30%">Cụm Sân (Chi Nhánh)</th>
+                    <th width="15%">Giá Bán</th>
+                    <th width="15%">Số Lượng Xuất</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in ds_xuat %}
+                <tr>
+                    <td class="text-center text-muted">{{ forloop.counter }}</td>
+                    <td class="fw-bold text-dark">{{ item.ten_sp }}</td>
+                    <td class="text-center">{{ item.cum_san }}</td>
+                    <td class="text-end">{{ item.gia|floatformat:0|intcomma }}đ</td>
+                    <td class="text-center text-danger fw-bold fs-5">-{{ item.sl_thay_doi }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="row signature-box">
+            <div class="col-4">
+                <p class="fw-bold mb-5">Người Lập Phiếu</p>
+                <p class="text-muted fst-italic">(Ký, ghi rõ họ tên)</p>
+            </div>
+            <div class="col-4">
+                <p class="fw-bold mb-5">Người Nhận Hàng</p>
+                <p class="text-muted fst-italic">(Ký, ghi rõ họ tên)</p>
+            </div>
+            <div class="col-4">
+                <p class="fw-bold mb-5">Giám Đốc / Quản Lý</p>
+                <p class="text-muted fst-italic">(Ký, ghi rõ họ tên)</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if not ds_nhap and not ds_xuat %}
+    <div class="invoice-box text-center">
+        <h4 class="text-secondary mb-3">BIÊN BẢN CẬP NHẬT GIÁ</h4>
+        <p class="text-muted">Các mặt hàng của bạn chỉ được cập nhật thay đổi giá bán, không có biến động về số lượng tồn kho nên không xuất hóa đơn Nhập/Xuất.</p>
+    </div>
+    {% endif %}
+
+</body>
+</html>

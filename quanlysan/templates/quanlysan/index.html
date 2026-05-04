@@ -1,0 +1,321 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sân Thể Thao 333 - Hệ Thống Đặt Sân Chuyên Nghiệp</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+      :root { --primary-color: #00b14f; --accent-color: #f7a800; --bg-color: #f5f6f8; }
+      body { background-color: var(--bg-color); font-family: "Segoe UI", sans-serif; padding-bottom: 90px; }
+      
+      .top-nav { background: white; padding: 12px 0; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); }
+      .search-box { position: relative; }
+      .search-box input { border-radius: 20px; padding-left: 40px; background: #f0f2f5; border: 1px solid #eee; height: 45px; }
+      .search-box i { position: absolute; left: 15px; top: 14px; color: #888; }
+      
+      .announcement-card { background: linear-gradient(135deg, #fff 0%, #fff9e6 100%); border-left: 5px solid var(--accent-color); border-radius: 12px; }
+      .announcement-item { border-bottom: 1px dashed #eee; padding: 8px 0; }
+      .announcement-item:last-child { border-bottom: none; }
+      
+      .sport-card { background: white; border: none; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); transition: 0.3s; height: 100%; display: flex; flex-direction: column; }
+      .sport-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+      .card-img-wrapper { position: relative; height: 180px; overflow: hidden; background: #eee; }
+      .card-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+      .badge-status { position: absolute; top: 12px; left: 12px; background: rgba(40, 167, 69, 0.9); color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; }
+      
+      .time-box { font-size: 11px; color: #666; text-align: center; }
+      .time-box i { font-size: 14px; display: block; margin-bottom: 2px; color: #999; }
+
+      .btn-booking { 
+        background: var(--primary-color); 
+        color: white !important; 
+        font-weight: bold; 
+        border-radius: 8px; 
+        padding: 8px 0; 
+        font-size: 12px; 
+        text-decoration: none; 
+        border: none; 
+        transition: 0.2s; 
+      }
+      .btn-booking:hover { filter: brightness(0.9); transform: translateY(-2px); }
+      
+      .footer { background: white; border-top: 1px solid #eee; padding: 40px 0 20px; margin-top: 50px; }
+      .footer-title { font-weight: 800; color: #222; margin-bottom: 15px; font-size: 16px; }
+      .footer-link { color: #666; text-decoration: none; display: block; margin-bottom: 8px; font-size: 14px; transition: 0.2s; }
+      .footer-link:hover { color: var(--primary-color); padding-left: 5px; }
+      .social-icon { display: inline-block; width: 35px; height: 35px; background: #f0f2f5; color: #555; text-align: center; line-height: 35px; border-radius: 50%; margin-right: 10px; transition: 0.3s; }
+      .social-icon:hover { background: var(--primary-color); color: white; }
+      
+      .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 12px 0; box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.05); z-index: 1000; border-top-left-radius: 20px; border-top-right-radius: 20px; }
+      .nav-item { text-align: center; color: #a0a0a0; text-decoration: none; font-size: 11px; font-weight: 500; }
+      .nav-item i { font-size: 22px; display: block; margin-bottom: 4px; }
+      .nav-item.active { color: var(--primary-color); }
+    </style>
+  </head>
+  <body>
+
+    <div class="modal fade" id="welcomePopup" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+          <div class="row g-0">
+            <div class="col-md-5 d-none d-md-block" style="background: url('https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=600') center/cover;">
+            </div>
+            <div class="col-md-7 position-relative p-4 p-md-5 bg-white">
+              <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+              
+              <div class="text-center text-md-start mt-2">
+                <h2 class="fw-bolder text-success mb-2"><i class="fas fa-bolt text-warning"></i> SÂN 333</h2>
+                <h5 class="fw-bold text-dark mb-3">Hệ thống đặt sân bóng đá hàng đầu!</h5>
+                
+                <p class="text-muted mb-4" style="font-size: 15px; line-height: 1.6;">
+                  Chào mừng bạn đến với Sân Thể Thao 333. Chúng tôi tự hào mang đến trải nghiệm tìm sân nhanh chóng, cáp kèo dễ dàng, với chất lượng sân bãi tốt nhất và giá cả cực kỳ ưu đãi.
+                </p>
+                
+                <div class="d-flex flex-column gap-2 mt-4">
+                  <button type="button" class="btn btn-success btn-lg fw-bold shadow-sm" data-bs-dismiss="modal">
+                    <i class="fas fa-futbol me-2"></i> ĐẶT SÂN NGAY
+                  </button>
+                  <a href="{% url 'gioi_thieu' %}" class="btn btn-outline-success fw-bold py-2">
+                    TÌM HIỂU THÊM VỀ CHÚNG TÔI
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="top-nav sticky-top">
+      <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <a href="{% url 'home' %}" class="text-decoration-none text-success fw-bolder fs-4"><i class="fas fa-bolt"></i> SÂN 333</a>
+          <div>
+            {% if user.is_authenticated %}
+                <span class="small fw-bold me-2">Chào, {{ user.last_name }}</span>
+                <a href="{% url 'logout' %}" class="text-danger small"><i class="fas fa-sign-out-alt"></i></a>
+            {% else %}
+                <a href="{% url 'signup' %}" class="text-primary small fw-bold text-decoration-none me-3">Đăng ký</a>
+                <a href="{% url 'login' %}" class="btn btn-sm btn-success fw-bold text-white rounded-pill px-3">Đăng nhập</a>
+            {% endif %}
+          </div>
+        </div>
+        <form action="" method="GET">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" name="q" class="form-control border-0 shadow-sm" placeholder="Tìm tên sân hoặc địa chỉ..." value="{{ query }}" />
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="container mt-3">
+      {% if user.is_staff %}
+      <div class="card border-0 shadow-sm mb-3" style="border-radius: 12px; background: #eefdf3">
+        <div class="card-body py-3">
+          <div class="d-flex align-items-center mb-2">
+            <span class="badge {% if user.is_superuser %}bg-danger{% else %}bg-success{% endif %} me-2">
+                <i class="fas {% if user.is_superuser %}fa-crown{% else %}fa-user-tie{% endif %}"></i> 
+                {% if user.is_superuser %}QUẢN LÝ CHÍNH{% else %}NHÂN VIÊN{% endif %}
+            </span>
+            <span class="small fw-bold text-success">Bảng điều khiển</span>
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'quan_ly_don' %}" class="btn bg-white shadow-sm border text-dark btn-sm rounded-pill"><i class="fas fa-list-check text-warning me-1"></i> Đơn đặt</a>
+            <a href="{% url 'quan_ly_thong_bao' %}" class="btn bg-white shadow-sm border text-dark btn-sm rounded-pill"><i class="fas fa-bullhorn text-danger me-1"></i> Thông báo</a>
+            <a href="{% url 'ds_san_pham' %}" class="btn bg-white shadow-sm border text-dark btn-sm rounded-pill"><i class="fas fa-store text-info me-1"></i> Kho hàng</a>
+            {% if user.is_superuser %}
+            <a href="{% url 'them_dia_diem' %}" class="btn bg-white shadow-sm border text-dark btn-sm rounded-pill"><i class="fas fa-plus text-success me-1"></i> Cụm sân</a>
+            <a href="{% url 'them_san_con' %}" class="btn bg-white shadow-sm border text-dark btn-sm rounded-pill"><i class="fas fa-futbol text-primary me-1"></i> Sân con</a>
+            <a href="{% url 'quan_ly_thanh_vien' %}" class="btn bg-white shadow-sm border text-dark btn-sm rounded-pill"><i class="fas fa-users text-secondary me-1"></i> Thành viên</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="d-flex justify-content-end mb-3">
+          <a href="{% url 'trang_tim_doi' %}" class="btn btn-sm btn-primary shadow-sm rounded-pill"><i class="fas fa-handshake"></i> Tìm đối / Cáp kèo</a>
+      </div>
+
+      {% if ds_thong_bao %}
+      <div class="announcement-card card shadow-sm mb-4 border-0">
+        <div class="card-body py-2">
+          <h6 class="fw-bold text-dark mb-1 small"><i class="fas fa-bullhorn text-warning me-2"></i> TIN MỚI</h6>
+          <div class="announcement-list">
+            {% for tb in ds_thong_bao %}
+            <div class="announcement-item">
+              <a href="#" data-bs-toggle="modal" data-bs-target="#tbModal{{ tb.id }}" class="text-decoration-none">
+                <span class="fw-bold text-primary" style="font-size: 13px;">
+                  {% if tb.is_pin %}<span class="text-danger">[GHIM]</span>{% endif %} {{ tb.tieu_de }}
+                </span>
+                <p class="mb-0 text-secondary" style="font-size: 12px;">{{ tb.noi_dung|truncatechars:50 }} <span class="text-success fw-bold small">Chi tiết <i class="fas fa-angle-right"></i></span></p>
+              </a>
+            </div>
+
+            <div class="modal fade" id="tbModal{{ tb.id }}" tabindex="-1">
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                  <div class="modal-header bg-warning border-0 py-2">
+                    <h6 class="modal-title fw-bold text-dark">
+                      {% if tb.is_pin %}<i class="fas fa-thumbtack me-1"></i>{% endif %} {{ tb.tieu_de }}
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                  </div>
+                  <div class="modal-body text-dark">
+                    <div class="small text-muted mb-3"><i class="far fa-clock"></i> {{ tb.ngay_dang|date:"d/m/Y H:i" }}</div>
+                    <p style="white-space: pre-wrap; font-size: 15px;">{{ tb.noi_dung }}</p>
+                  </div>
+                  <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">Đóng</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <h6 class="fw-bold text-secondary mb-3">🔥 KHU VỰC PHỔ BIẾN</h6>
+
+      <div class="row g-3">
+        {% for dd in cac_dia_diem %}
+        <div class="col-6 col-md-4 col-lg-3">
+          <div class="sport-card shadow-sm">
+            <div class="card-img-wrapper">
+              <a href="{% url 'thong_tin_cum_san' dd.pk %}">
+                {% if dd.hinh_anh %}
+                <img src="{{ dd.hinh_anh.url }}" alt="{{ dd.ten_dia_diem }}" />
+                {% elif dd.hinh_anh_dai_dien %}
+                <img src="{{ dd.hinh_anh_dai_dien.url }}" alt="{{ dd.ten_dia_diem }}" />
+                {% else %}
+                <img src="https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=400" />
+                {% endif %}
+                <span class="badge-status">Mở cửa</span>
+              </a>
+            </div>
+            <div class="card-body d-flex flex-column">
+              <a href="{% url 'thong_tin_cum_san' dd.pk %}" class="text-decoration-none text-dark">
+                <h5 class="card-title text-truncate fw-bold">{{ dd.ten_dia_diem }}</h5>
+              </a>
+              
+              <div class="mb-2">
+                <span class="text-warning small fw-bold"><i class="fas fa-star"></i> {{ dd.trung_binh_sao|default:"5.0" }}</span>
+                <span class="text-muted" style="font-size: 10px;">({{ dd.ds_danh_gia.count|default:"0" }})</span>
+              </div>
+
+              <p class="address-text mb-2 text-muted small"><i class="fas fa-location-dot me-1 text-danger"></i> {{ dd.dia_chi }}</p>
+              
+              {% if dd.dist %}
+              <div class="bg-light p-2 rounded mb-3 border">
+                  <div class="small fw-bold text-success mb-2" style="font-size: 11px;">Cách bạn: {{ dd.dist|floatformat:1 }} km</div>
+                  <div class="row g-0">
+                      <div class="col-3 time-box border-end text-center">
+                          <i class="fas fa-walking"></i>
+                          <span>{{ dd.times.walk }}p</span>
+                      </div>
+                      <div class="col-3 time-box border-end text-center">
+                          <i class="fas fa-bicycle"></i>
+                          <span>{{ dd.times.bike }}p</span>
+                      </div>
+                      <div class="col-3 time-box border-end text-center">
+                          <i class="fas fa-motorcycle"></i>
+                          <span>{{ dd.times.motor }}p</span>
+                      </div>
+                      <div class="col-3 time-box text-center">
+                          <i class="fas fa-car"></i>
+                          <span>{{ dd.times.car }}p</span>
+                      </div>
+                  </div>
+              </div>
+              {% endif %}
+              
+              <div class="mt-auto d-flex justify-content-between align-items-center gap-2">
+                <a href="{% url 'thong_tin_cum_san' dd.pk %}" class="btn btn-outline-success btn-sm fw-bold flex-grow-1 text-center" style="border-radius: 8px; padding: 7px 0;">Xem chi tiết</a>
+                <a href="{% url 'chi_tiet_dia_diem' dd.pk %}#danh-sach-san" class="btn-booking shadow-sm flex-grow-1 text-center">ĐẶT NGAY</a>
+              </div>
+
+              {% if user.is_superuser %}
+              <div class="d-flex justify-content-end gap-2 mt-3 pt-2 border-top">
+                  <a href="{% url 'chi_tiet_dia_diem' dd.pk %}" class="btn btn-xs btn-outline-warning fw-bold px-2 py-1 rounded" style="font-size: 11px;"><i class="fas fa-edit"></i> Sửa Cụm Sân</a>
+                  <a href="{% url 'xoa_dia_diem' dd.pk %}" class="btn btn-xs btn-outline-danger fw-bold px-2 py-1 rounded" style="font-size: 11px;" onclick="return confirm('Xóa cụm sân này?');"><i class="fas fa-trash"></i></a>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      {% if cac_dia_diem.has_other_pages %}
+      <nav class="mt-4 mb-5">
+        <ul class="pagination pagination-sm justify-content-center">
+          {% if cac_dia_diem.has_previous %}
+          <li class="page-item"><a class="page-link text-success" href="?page={{ cac_dia_diem.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">&laquo;</a></li>
+          {% endif %}
+          {% for num in cac_dia_diem.paginator.page_range %}
+            <li class="page-item {% if cac_dia_diem.number == num %}active{% endif %}">
+              <a class="page-link {% if cac_dia_diem.number == num %}bg-success border-success text-white{% else %}text-success{% endif %}" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}">{{ num }}</a>
+            </li>
+          {% endfor %}
+          {% if cac_dia_diem.has_next %}
+          <li class="page-item"><a class="page-link text-success" href="?page={{ cac_dia_diem.next_page_number }}{% if query %}&q={{ query }}{% endif %}">&raquo;</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+      {% endif %}
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-5 mb-4">
+                    <h5 class="text-success fw-bolder fs-4 mb-3"><i class="fas fa-bolt"></i> SÂN 333</h5>
+                    <p class="text-muted small pe-md-5">Nền tảng đặt sân bóng đá trực tuyến hàng đầu. Chúng tôi cung cấp giải pháp tìm sân nhanh chóng, cáp kèo dễ dàng và quản lý kho hàng thông minh cho các chủ sân.</p>
+                </div>
+                <div class="col-6 col-md-3 mb-4">
+                    <h5 class="footer-title">Khám Phá</h5>
+                    <a href="{% url 'home' %}" class="footer-link">Trang chủ</a>
+                    <a href="{% url 'ban_do_lon' %}" class="footer-link">Bản đồ sân</a>
+                    <a href="{% url 'trang_tim_doi' %}" class="footer-link">Tìm đối / Cáp kèo</a>
+                    <a href="{% url 'gioi_thieu' %}" class="footer-link">Về chúng tôi</a>
+                </div>
+                <div class="col-6 col-md-4 mb-4">
+                    <h5 class="footer-title">Hỗ Trợ Khách Hàng</h5>
+                    <div class="footer-link"><i class="fas fa-phone-alt text-success me-2"></i> 0987.654.321</div>
+                    <div class="footer-link"><i class="fas fa-envelope text-success me-2"></i> cskh@san333.vn</div>
+                </div>
+            </div>
+            <hr class="my-4 text-muted">
+            <div class="text-center small text-muted">&copy; 2026 Bản quyền thuộc về Hệ thống Sân 333.</div>
+        </div>
+    </footer>
+
+    <div class="bottom-nav">
+      <a href="{% url 'home' %}" class="nav-item active"><i class="fas fa-house"></i> Trang chủ</a>
+      <a href="{% url 'ban_do_lon' %}" class="nav-item"><i class="fas fa-map-location-dot"></i> Bản đồ</a>
+      <a href="{% url 'lich_su_dat' %}" class="nav-item"><i class="fas fa-receipt"></i> Đã đặt</a>
+      <a href="{% url 'ho_so' %}" class="nav-item"><i class="fas fa-circle-user"></i> Tôi</a>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Kiểm tra trong trình duyệt xem khách này đã thấy popup chưa
+            if (!localStorage.getItem('welcomeShown')) {
+                // Nếu chưa, gọi Modal của Bootstrap ra hiển thị
+                var welcomeModal = new bootstrap.Modal(document.getElementById('welcomePopup'));
+                welcomeModal.show();
+                
+                // Đánh dấu là khách này đã xem quảng cáo rồi
+                localStorage.setItem('welcomeShown', 'true');
+            }
+        });
+    </script>
+  </body>
+</html>

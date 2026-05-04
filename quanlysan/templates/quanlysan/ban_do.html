@@ -1,0 +1,261 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Bản Đồ Tìm Sân</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+    
+    <style>
+        :root { --primary-color: #00b14f; }
+        body { background-color: #f5f6f8; font-family: "Segoe UI", sans-serif; margin: 0; overflow: hidden; }
+        #map { width: 100%; height: 100vh; z-index: 1; }
+        
+        .floating-panel { 
+            position: absolute; 
+            top: 15px; 
+            right: 15px; 
+            z-index: 1000; 
+            width: 320px; 
+            max-width: calc(100vw - 30px); 
+            background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(5px);
+            padding: 15px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15); 
+        }
+        
+        .back-btn { position: absolute; top: 15px; left: 15px; z-index: 1001; background: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); color: #333; text-decoration: none; }
+        .back-btn:hover { background: #f0f0f0; color: var(--primary-color); }
+        
+        .eta-box { display: none; background: #eefdf3; border: 1px solid #00b14f; padding: 12px; border-radius: 8px; margin-top: 10px; }
+        .leaflet-routing-container { display: none !important; }
+        
+        /* Chỉnh nút định vị GPS */
+        .btn-gps { width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; }
+    </style>
+</head>
+<body>
+    <a href="{% url 'home' %}" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+
+    <div class="floating-panel">
+        <div id="instructionBox" class="alert alert-success py-2 px-3 mb-3 small d-flex justify-content-between align-items-center shadow-sm border-0 rounded">
+            <span class="fw-bold"><i class="fas fa-hand-pointer me-1"></i> Chạm bản đồ chọn điểm</span>
+            <button class="btn btn-sm btn-success rounded-circle shadow-sm btn-gps" onclick="locateMe()" title="Dùng GPS của tôi">
+                <i id="gps-icon" class="fas fa-crosshairs"></i>
+            </button>
+        </div>
+        
+        <div class="mb-2">
+            <label class="small fw-bold text-muted mb-1">Bán kính tìm</label>
+            <select id="radFilter" class="form-select form-select-sm border-success fw-bold text-success" disabled>
+                <option value="0">Tất cả</option>
+                <option value="3">Trong 3km</option>
+                <option value="5">Trong 5km</option>
+                <option value="10">Trong 10km</option>
+            </select>
+        </div>
+        
+        <div class="mb-3">
+            <label class="small fw-bold text-muted mb-1">Di chuyển bằng</label>
+            <select id="travelMode" class="form-select form-select-sm border-primary fw-bold text-primary">
+                <option value="walking">🏃 Đi bộ</option>
+                <option value="cycling">🚲 Xe đạp</option>
+                <option value="driving" selected>🚗 Ô tô / Xe máy</option>
+            </select>
+        </div>
+
+        <label class="small fw-bold text-muted mb-1">Chọn sân để dẫn đường</label>
+        <select id="targetField" class="form-select form-select-sm border-dark mb-2" style="display: none;">
+            <option value="">-- Sân bóng trong vùng --</option>
+        </select>
+
+        <div id="etaBox" class="eta-box shadow-sm">
+            <div class="d-flex justify-content-between align-items-center">
+                <div id="etaText" class="small fw-bold text-dark"></div>
+                <div id="modeIcon"><i class="fas fa-car fa-2x text-success"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+    <script>
+        var map = L.map('map', {zoomControl: false}).setView([10.823, 106.629], 13);
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+        L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+            maxZoom: 21, subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+        }).addTo(map);
+
+        var locations = [
+            {% for dd in cac_dia_diem %}{% if dd.vi_do and dd.kinh_do %}
+            { id: {{ dd.id }}, lat: {{ dd.vi_do|stringformat:"f" }}, lng: {{ dd.kinh_do|stringformat:"f" }}, name: "{{ dd.ten_dia_diem|escapejs }}" },
+            {% endif %}{% endfor %}
+        ];
+
+        var markers = [];
+        var startPoint = null;
+        var startMarker = null;
+        var userCircle = null;
+        var routingControl = null;
+
+        // Vẽ các sân bóng lên bản đồ
+        locations.forEach(function(loc) {
+            var fieldIcon = L.icon({
+                iconUrl: 'https://cdn-icons-png.flaticon.com/512/33/33736.png',
+                iconSize: [30, 30]
+            });
+            var m = L.marker([loc.lat, loc.lng], {icon: fieldIcon}).addTo(map).bindPopup("<b class='text-success'>" + loc.name + "</b>");
+            m.locData = loc;
+            markers.push(m);
+        });
+
+        // HÀM GPS TỰ TÌM VỊ TRÍ
+        function locateMe() {
+            if (navigator.geolocation) {
+                var icon = document.getElementById('gps-icon');
+                icon.className = 'fas fa-spinner fa-spin';
+                
+                navigator.geolocation.getCurrentPosition(function(pos) {
+                    var latlng = L.latLng(pos.coords.latitude, pos.coords.longitude);
+                    map.setView(latlng, 14);
+                    // Giả lập sự kiện click vào bản đồ để kích hoạt luồng chọn điểm
+                    map.fireEvent('click', {latlng: latlng});
+                    icon.className = 'fas fa-crosshairs';
+                }, function(err) {
+                    alert("Vui lòng bật quyền Định vị (GPS) để sử dụng tính năng này!");
+                    icon.className = 'fas fa-crosshairs';
+                });
+            } else {
+                alert("Trình duyệt không hỗ trợ GPS.");
+            }
+        }
+
+        // XỬ LÝ KHI CLICK LÊN BẢN ĐỒ (Hoặc khi gọi từ GPS)
+        map.on('click', function(e) {
+            startPoint = e.latlng;
+            
+            // Xóa điểm cũ và vẽ điểm mới
+            if(startMarker) map.removeLayer(startMarker);
+            var userIcon = L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/149/149059.png', iconSize: [35, 35] });
+            startMarker = L.marker(startPoint, {icon: userIcon}).addTo(map).bindPopup("<b>Điểm đi của bạn</b>").openPopup();
+            
+            // XÓA ĐƯỜNG ĐI CŨ (Fix lỗi hiển thị)
+            if(routingControl) {
+                map.removeControl(routingControl);
+                routingControl = null;
+            }
+            document.getElementById('etaBox').style.display = 'none';
+
+            // Mở khóa bán kính và lọc sân
+            document.getElementById('radFilter').disabled = false;
+            processRadius();
+        });
+
+        document.getElementById('radFilter').addEventListener('change', processRadius);
+        document.getElementById('travelMode').addEventListener('change', function() {
+            if(document.getElementById('targetField').value) calculateRoute();
+        });
+        document.getElementById('targetField').addEventListener('change', calculateRoute);
+
+        // HÀM LỌC BÁN KÍNH
+        function processRadius() {
+            var radKm = parseFloat(document.getElementById('radFilter').value);
+            if(!startPoint) return;
+            
+            if(userCircle) map.removeLayer(userCircle);
+            
+            if(radKm > 0) {
+                userCircle = L.circle(startPoint, { color: '#00b14f', weight: 1, fillColor: '#00b14f', fillOpacity: 0.1, radius: radKm * 1000 }).addTo(map);
+                map.fitBounds(userCircle.getBounds());
+            }
+
+            var targetSelect = document.getElementById('targetField');
+            targetSelect.innerHTML = '<option value="">-- Chọn sân bóng để dẫn đường --</option>';
+            targetSelect.style.display = 'block';
+
+            var inRange = [];
+            markers.forEach(function(m) {
+                var dist = map.distance(startPoint, [m.locData.lat, m.locData.lng]);
+                if(radKm === 0 || dist <= radKm * 1000) {
+                    inRange.push({ m: m, d: dist });
+                }
+            });
+
+            inRange.sort((a,b) => a.d - b.d).forEach(function(item) {
+                var opt = document.createElement("option");
+                opt.value = item.m.locData.id;
+                opt.text = item.m.locData.name + " (" + (item.d/1000).toFixed(1) + " km)";
+                opt.dataset.lat = item.m.locData.lat; 
+                opt.dataset.lng = item.m.locData.lng;
+                targetSelect.appendChild(opt);
+            });
+        }
+
+        // HÀM VẼ ĐƯỜNG ĐI
+        function calculateRoute() {
+            var sel = document.getElementById('targetField');
+            
+            // Nếu người dùng chọn lại option rỗng "-- Chọn sân bóng --" -> Xóa đường đi
+            if(!sel.value || !startPoint) {
+                if(routingControl) {
+                    map.removeControl(routingControl);
+                    routingControl = null;
+                }
+                document.getElementById('etaBox').style.display = 'none';
+                return;
+            }
+
+            var dest = L.latLng(sel.options[sel.selectedIndex].dataset.lat, sel.options[sel.selectedIndex].dataset.lng);
+            var mode = document.getElementById('travelMode').value;
+
+            // Chuyển đổi tên phương tiện
+            var osrmProfile = 'driving';
+            if (mode === 'walking') osrmProfile = 'foot';
+            if (mode === 'cycling') osrmProfile = 'bike';
+
+            // Phải xóa đường cũ trước khi vẽ đường mới (Fix bug đè nét vẽ)
+            if(routingControl) map.removeControl(routingControl);
+
+            routingControl = L.Routing.control({
+                waypoints: [startPoint, dest],
+                router: L.Routing.osrmv1({ 
+                    serviceUrl: 'https://router.project-osrm.org/route/v1', 
+                    profile: osrmProfile 
+                }),
+                lineOptions: { styles: [{ color: '#00b14f', opacity: 0.8, weight: 6 }] },
+                createMarker: function() { return null; },
+                show: false, addWaypoints: false
+            }).addTo(map);
+
+            routingControl.on('routesfound', function(e) {
+                var s = e.routes[0].summary;
+                var distKm = (s.totalDistance / 1000);
+                var time = 0;
+
+                // Tính toán thời gian
+                if (mode === 'walking') {
+                    time = Math.round((distKm / 5) * 60); // 5km/h
+                } else if (mode === 'cycling') {
+                    time = Math.round((distKm / 15) * 60); // 15km/h
+                } else {
+                    time = Math.round(s.totalTime / 60);
+                }
+                
+                document.getElementById('etaBox').style.display = 'block';
+                document.getElementById('etaText').innerHTML = "Cách bạn: <span class='text-danger'>" + distKm.toFixed(1) + " km</span><br>Ước tính: <span class='text-danger'>" + time + " phút</span>";
+                
+                var iconClass = mode === 'walking' ? 'fa-walking' : (mode === 'cycling' ? 'fa-bicycle' : 'fa-car');
+                document.getElementById('modeIcon').innerHTML = '<i class="fas ' + iconClass + ' fa-2x text-success"></i>';
+            });
+        }
+    </script>
+</body>
+</html>
