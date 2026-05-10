@@ -5,6 +5,34 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-13+-blue.svg)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
+## 📄 License
+
+Dự án này được phát hành dưới **MIT License** - phù hợp cho đồ án môn học mã nguồn mở.
+
+### 🔍 Điều Khoản Chính
+
+- ✅ **Sử dụng miễn phí** cho mục đích học tập và nghiên cứu
+- ✅ **Sửa đổi và phân phối** được cho phép
+- ✅ **Mã nguồn mở** - truy cập và tùy chỉnh tự do
+- ✅ **Giữ bản quyền** khi phân phối lại
+- ⚠️ **Không bảo hành** - sử dụng tự chịu trách nhiệm
+
+### 📝 Hướng Dẫn Sử Dụng
+
+1. **Giữ nguyên file LICENSE** khi sử dụng hoặc phân phối
+2. **Ghi nhận tác giả** gốc "QuanLySan333"
+3. **Cung cấp mã nguồn** nếu có sửa đổi
+4. **Không xóa thông tin** bản quyền và license
+
+### 🎯 Mục Đích Đồ Án
+
+- 📚 **Học tập:** Phục vụ môn học mã nguồn mở
+- 🔬 **Nghiên cứu:** Nền tảng nghiên cứu hệ thống web
+- 🚀 **Phát triển:** Tiếp tục phát triển tính năng mới
+- 📖 **Tham khảo:** Tài liệu cho các dự án tương tự
+
+Xem đầy đủ thông tin license trong file [LICENSE](LICENSE).
+
 Website quản lý & đặt sân bóng hoàn chỉnh với **Django** + **REST API** + **JWT** + **Swagger**. Hệ thống cho phép người dùng tìm kiếm, đặt sân, tìm đối thi đấu và quản lý toàn bộ hoạt động liên quan đến sân bóng.
 
 ## ✨ Tính Năng Nổi Bật
