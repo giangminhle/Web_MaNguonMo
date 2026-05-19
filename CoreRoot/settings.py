@@ -73,19 +73,17 @@ TEMPLATES = [
 WSGI_APPLICATION = 'CoreRoot.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
     'default': {
         'ENGINE': 'mssql',
         'NAME': 'SanTheThaoDB',
-        'USER': 'sa',             # Thường mặc định là sa
-        'PASSWORD': '123', # <--- NHẬP PASS SQL CỦA BẠN VÀO ĐÂY
+        'USER': 'sa',             
+        'PASSWORD': '123', 
         'HOST': 'localhost',
         'PORT': '',
         'OPTIONS': {
-            'driver': 'ODBC Driver 17 for SQL Server', # Hoặc 'ODBC Driver 18...' nếu bạn cài bản mới
+            'driver': 'ODBC Driver 17 for SQL Server', 
             'unicode_results': True,
         },
     }
