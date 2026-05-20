@@ -1,0 +1,71 @@
+{% load static humanize %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <title>Xác Nhận Nhập Kho Excel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        body { background-color: #f5f6f8; font-family: "Segoe UI", sans-serif; }
+        .table th { background-color: #e9ecef; }
+        .changed-val { background-color: #d1e7dd; font-weight: bold; }
+    </style>
+</head>
+<body class="py-5">
+    <div class="container">
+        <div class="card border-0 shadow">
+            <div class="card-header bg-warning text-dark py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-eye me-2"></i> BẢNG XEM TRƯỚC DỮ LIỆU NHẬP KHO</h5>
+            </div>
+            
+            <div class="card-body p-4">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Vui lòng kiểm tra kỹ các thông số bị thay đổi bên dưới. Bấm <b>Xác nhận nhập kho</b> để chính thức lưu vào hệ thống.
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover align-middle">
+                        <thead>
+                            <tr class="text-center">
+                                <th class="text-start">Tên Sản Phẩm</th>
+                                <th>Chi Nhánh</th>
+                                <th>Giá Cũ</th>
+                                <th>Giá Mới</th>
+                                <th>Tồn Cũ</th>
+                                <th>Tồn Mới</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in preview_list %}
+                            <tr>
+                                <td class="fw-bold">{{ item.ten_sp }}</td>
+                                <td class="text-center">{{ item.cum_san }}</td>
+                                <td class="text-center text-muted text-decoration-line-through">{{ item.gia_cu|floatformat:0|intcomma }}đ</td>
+                                <td class="text-center text-danger fw-bold">{{ item.gia_moi|floatformat:0|intcomma }}đ</td>
+                                <td class="text-center text-muted text-decoration-line-through">{{ item.sl_cu }}</td>
+                                <td class="text-center fs-5 {% if item.sl_cu != item.sl_moi %}changed-val text-success{% else %}text-dark fw-bold{% endif %}">
+                                    {{ item.sl_moi }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="card-footer bg-white d-flex justify-content-end gap-3 py-3 px-4">
+                <a href="{% url 'ds_san_pham' %}" class="btn btn-outline-secondary fw-bold px-4">Hủy & Quay Lại</a>
+                
+                <form method="POST" action="{% url 'xac_nhan_excel' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="excel_data" value="{{ json_data }}">
+                    <button type="submit" class="btn btn-success fw-bold px-4">
+                        <i class="fas fa-check-circle me-1"></i> XÁC NHẬN NHẬP KHO
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

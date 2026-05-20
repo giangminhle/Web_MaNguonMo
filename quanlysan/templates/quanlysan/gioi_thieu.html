@@ -1,0 +1,94 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <title>{{ info.tieu_de_hero|default:"Về Chúng Tôi" }} - Sân Thể Thao 333</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        :root { --primary-color: #00b14f; --accent-color: #f7a800; --bg-color: #f5f6f8; }
+        body { background-color: var(--bg-color); font-family: "Segoe UI", sans-serif; padding-bottom: 90px; }
+        .top-nav { background: white; padding: 12px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        
+        .hero-section { 
+            background: linear-gradient(135deg, rgba(0, 177, 79, 0.9) 0%, rgba(0, 150, 64, 0.9) 100%){% if info.hinh_anh_hero %}, url('{{ info.hinh_anh_hero.url }}') center/cover no-repeat{% endif %};
+            background-blend-mode: overlay;
+            color: white; 
+            padding: 50px 0; 
+            border-radius: 15px; 
+            margin-top: 15px; 
+            position: relative;
+        }
+        
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 12px 0; box-shadow: 0 -5px 15px rgba(0,0,0,0.05); border-radius: 20px 20px 0 0; z-index: 1000; }
+    </style>
+</head>
+<body>
+    <div class="top-nav sticky-top">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a href="{% url 'home' %}" class="text-decoration-none text-success fw-bolder fs-4"><i class="fas fa-arrow-left me-2"></i>SÂN 333</a>
+            {% if user.is_staff %}
+            <a href="{% url 'sua_gioi_thieu' %}" class="btn btn-sm btn-warning fw-bold shadow-sm"><i class="fas fa-edit"></i> Sửa nội dung</a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="hero-section text-center shadow">
+            <h2 class="fw-bold mb-3 px-3">{{ info.tieu_de_hero|default:"Về Chúng Tôi" }}</h2>
+            <p class="mb-0 px-4" style="font-size: 1.1rem; opacity: 0.9;">{{ info.mo_ta_hero|default:"Nền tảng đặt sân bóng uy tín." }}</p>
+        </div>
+
+        <div class="card border-0 shadow-sm mt-4 p-4" style="border-radius: 15px;">
+            <h5 class="fw-bold text-dark mb-3"><i class="fas fa-eye text-success me-2"></i> Tầm nhìn & Sứ mệnh</h5>
+            <p class="text-secondary mb-4">{{ info.tam_nhin_su_menh|linebreaksbr }}</p>
+            
+            {% if info.hinh_anh_chinh %}
+            <div class="text-center mb-4">
+                <img src="{{ info.hinh_anh_chinh.url }}" class="img-fluid rounded shadow-sm" style="max-height: 350px; width: 100%; object-fit: cover;">
+            </div>
+            {% endif %}
+
+            {% if info.noi_dung_chinh %}
+            <hr class="text-muted">
+            <h5 class="fw-bold text-dark mb-3"><i class="fas fa-info-circle text-success me-2"></i> Thông tin chi tiết</h5>
+            <p class="text-secondary">{{ info.noi_dung_chinh|linebreaksbr }}</p>
+            {% endif %}
+            
+            <hr class="mt-4 mb-4 text-muted">
+            
+            <div class="row text-center g-4 mt-2">
+                <div class="col-6 col-md-3">
+                    <i class="fas fa-bolt text-success fs-2 mb-3"></i>
+                    <h6 class="fw-bold">{{ info.feature_1_title|default:"Nhanh chóng" }}</h6>
+                    <p class="small text-muted">{{ info.feature_1_desc }}</p>
+                </div>
+                <div class="col-6 col-md-3">
+                    <i class="fas fa-handshake text-success fs-2 mb-3"></i>
+                    <h6 class="fw-bold">{{ info.feature_2_title|default:"Cáp kèo" }}</h6>
+                    <p class="small text-muted">{{ info.feature_2_desc }}</p>
+                </div>
+                <div class="col-6 col-md-3">
+                    <i class="fas fa-shield-alt text-success fs-2 mb-3"></i>
+                    <h6 class="fw-bold">{{ info.feature_3_title|default:"Uy tín" }}</h6>
+                    <p class="small text-muted">{{ info.feature_3_desc }}</p>
+                </div>
+                <div class="col-6 col-md-3">
+                    <i class="fas fa-headset text-success fs-2 mb-3"></i>
+                    <h6 class="fw-bold">{{ info.feature_4_title|default:"Hỗ trợ" }}</h6>
+                    <p class="small text-muted">{{ info.feature_4_desc }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bottom-nav">
+        <a href="{% url 'home' %}" style="text-align: center; color: #a0a0a0; text-decoration: none; font-size: 11px;"><i class="fas fa-house fs-4 d-block"></i> Trang chủ</a>
+        <a href="{% url 'ban_do_lon' %}" style="text-align: center; color: #a0a0a0; text-decoration: none; font-size: 11px;"><i class="fas fa-map-location-dot fs-4 d-block"></i> Bản đồ</a>
+        <a href="{% url 'lich_su_dat' %}" style="text-align: center; color: #a0a0a0; text-decoration: none; font-size: 11px;"><i class="fas fa-receipt fs-4 d-block"></i> Đã đặt</a>
+        <a href="{% url 'ho_so' %}" style="text-align: center; color: #a0a0a0; text-decoration: none; font-size: 11px;"><i class="fas fa-circle-user fs-4 d-block"></i> Tôi</a>
+    </div>
+</body>
+</html>

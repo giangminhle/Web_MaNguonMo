@@ -1,0 +1,103 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <title>Tìm Đối - Cáp Kèo Giao Lưu</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #f5f6f8; font-family: "Segoe UI", sans-serif; padding-bottom: 90px; }
+        .match-card { border-radius: 15px; border: none; transition: 0.2s; border-left: 5px solid #00b14f; }
+        .match-card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.1) !important; }
+        .avatar-box { width: 45px; height: 45px; background: #eefdf3; color: #00b14f; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 10px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 1000; }
+        .nav-item { text-align: center; color: #a0a0a0; text-decoration: none; font-size: 11px; width: 20%; }
+        .nav-item i { font-size: 22px; display: block; margin-bottom: 3px; }
+        .nav-item.active { color: #00b14f; }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded-4 shadow-sm">
+            <h5 class="fw-bold text-success mb-0"><i class="fas fa-handshake me-2"></i> CÁP KÈO GIAO LƯU</h5>
+            <button class="btn btn-warning fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalDangKeo">
+                <i class="fas fa-plus-circle"></i> Đăng Kèo
+            </button>
+        </div>
+
+        <div class="row">
+            {% for keo in ds_keo %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card match-card shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="avatar-box me-3 shadow-sm"><i class="fas fa-user"></i></div>
+                            <div>
+                                <h6 class="fw-bold mb-0">{{ keo.nguoi_dang.username }}</h6>
+                                <small class="text-muted"><i class="fas fa-star text-warning"></i> Trình độ: <span class="text-danger fw-bold">{{ keo.trinh_do }}</span></small>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-light p-2 rounded mb-3 border">
+                            <p class="mb-1 small"><b>{{ keo.san_bong.ten_san }}</b> ({{ keo.san_bong.dia_diem.ten_dia_diem }})</p>
+                            <p class="mb-1 small"><i class="far fa-calendar-alt text-primary me-1"></i> {{ keo.ngay_da|date:"d/m/Y" }}</p>
+                            <p class="mb-0 small"><i class="far fa-clock text-warning me-1"></i> {{ keo.gio_bat_dau|time:"H:i" }} ({{ keo.thoi_luong }}p)</p>
+                        </div>
+
+                        {% if keo.ghi_chu %}<p class="small text-secondary fst-italic mb-2">"{{ keo.ghi_chu }}"</p>{% endif %}
+                        <p class="small mb-2"><i class="fas fa-phone-alt text-danger me-1"></i> Liên hệ: <b>{{ keo.sdt_lien_he }}</b></p>
+
+                        {% if keo.nguoi_dang == request.user %}
+                            <div class="d-flex gap-2 w-100 mt-3 pt-3 border-top">
+                                <a href="{% url 'sua_keo' keo.pk %}" class="btn btn-outline-primary btn-sm w-50">Sửa</a>
+                                <a href="{% url 'huy_keo' keo.pk %}" class="btn btn-outline-danger btn-sm w-50" onclick="return confirm('Hủy kèo?')">Hủy</a>
+                            </div>
+                        {% else %}
+                            <a href="{% url 'nhan_keo' keo.pk %}" class="btn btn-success w-100 mt-3 fw-bold shadow-sm">NHẬN KÈO</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5 text-muted">Chưa có kèo nào.</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalDangKeo" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header bg-success text-white">
+                    <h6 class="modal-title fw-bold">TẠO KÈO MỚI</h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST">
+                    <div class="modal-body p-4">
+                        {% csrf_token %}
+                        {% for field in form %}
+                        <div class="mb-3">
+                            <label class="small fw-bold text-muted">{{ field.label }}</label>
+                            {{ field }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="submit" class="btn btn-warning w-100 fw-bold">ĐĂNG KÈO NGAY</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="{% url 'home' %}" class="nav-item"><i class="fas fa-house"></i>Trang chủ</a>
+        <a href="{% url 'ban_do_lon' %}" class="nav-item"><i class="fas fa-map-location-dot"></i>Bản đồ</a>
+        <a href="{% url 'trang_tim_doi' %}" class="nav-item active"><i class="fas fa-handshake"></i>Cáp kèo</a>
+        <a href="{% url 'lich_su_dat' %}" class="nav-item"><i class="fas fa-receipt"></i>Đã đặt</a>
+        <a href="{% url 'ho_so' %}" class="nav-item"><i class="fas fa-circle-user"></i>Tôi</a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

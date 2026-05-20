@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <title>{{ title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <style>
+      #map-picker { height: 400px; width: 100%; border-radius: 8px; border: 2px solid #00b14f; margin-bottom: 20px; cursor: crosshair; z-index: 1; }
+    </style>
+  </head>
+  <body class="bg-light d-flex align-items-center justify-content-center" style="min-height: 100vh">
+    <div class="card shadow-lg border-0 my-5" style="width: 800px; border-radius: 12px">
+      <div class="card-header bg-success text-white py-3 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold text-uppercase"><i class="fas fa-map-marker-alt"></i> {{ title }}</h5>
+        <button type="button" class="btn btn-sm btn-light text-success fw-bold" onclick="getMyLocation()">
+          <i class="fas fa-crosshairs"></i> Vị trí của tôi
+        </button>
+      </div>
+
+      <div class="card-body p-4">
+        <div class="row">
+          <div class="col-md-7">
+            <p class="text-primary fw-bold small mb-2"><i class="fas fa-info-circle"></i> Click chuột vào bản đồ để chọn vị trí:</p>
+            <div id="map-picker"></div>
+          </div>
+
+          <div class="col-md-5">
+            <form method="POST" enctype="multipart/form-data">
+              {% csrf_token %} 
+              
+              {% for field in form %}
+              <div class="mb-2">
+                <label class="form-label fw-bold small text-secondary mb-1">{{ field.label }}</label>
+                {{ field }} 
+                {% if field.errors %}
+                <div class="text-danger small">{{ field.errors.0 }}</div>
+                {% endif %}
+              </div>
+              {% endfor %}
+
+              <div class="mb-3 mt-3 p-3 bg-light border border-success rounded">
+                <label class="form-label fw-bold small text-success mb-1">
+                    <i class="fas fa-images"></i> Ảnh thư viện sân (Chọn nhiều ảnh):
+                </label>
+                <input type="file" name="hinh_anh_kem_theo" class="form-control" multiple accept="image/*">
+                <small class="text-muted d-block mt-1" style="font-size: 11px;">Mẹo: Giữ phím Ctrl (hoặc Cmd) để chọn nhiều ảnh.</small>
+              </div>
+
+              <div class="d-grid gap-2 mt-4">
+                <button type="submit" class="btn btn-success fw-bold">LƯU LẠI</button>
+                <a href="{% url 'home' %}" class="btn btn-outline-secondary">Hủy</a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+
+    <script>
+      // XỬ LÝ BẢN ĐỒ
+      var txtLat = document.getElementById("txtLat");
+      var txtLng = document.getElementById("txtLng");
+      var currentLat = parseFloat(txtLat.value) || 10.8231;
+      var currentLng = parseFloat(txtLng.value) || 106.6297;
+
+      var map = L.map("map-picker").setView([currentLat, currentLng], 15);
+
+      L.tileLayer("https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}", {
+        maxZoom: 21, subdomains: ["mt0", "mt1", "mt2", "mt3"],
+      }).addTo(map);
+
+      var marker = L.marker([currentLat, currentLng], { draggable: true }).addTo(map);
+
+      function updateInputs(lat, lng) {
+        txtLat.value = lat.toFixed(6);
+        txtLng.value = lng.toFixed(6);
+      }
+
+      marker.on("dragend", function (e) {
+        var position = marker.getLatLng();
+        updateInputs(position.lat, position.lng);
+      });
+
+      map.on("click", function (e) {
+        var lat = e.latlng.lat, lng = e.latlng.lng;
+        marker.setLatLng([lat, lng]); 
+        updateInputs(lat, lng);
+      });
+
+      function getMyLocation() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(function (position) {
+            var lat = position.coords.latitude, lng = position.coords.longitude;
+            map.setView([lat, lng], 16);
+            marker.setLatLng([lat, lng]);
+            updateInputs(lat, lng);
+          });
+        } else {
+          alert("Trình duyệt không hỗ trợ định vị.");
+        }
+      }
+
+      var addressInput = document.getElementById("id_dia_chi");
+      if (addressInput) {
+        var searchBtn = document.createElement("button");
+        searchBtn.type = "button";
+        searchBtn.className = "btn btn-sm btn-info mt-1 mb-3 fw-bold text-dark w-100 shadow-sm";
+        searchBtn.innerHTML = '<i class="fas fa-search-location"></i> Trỏ bản đồ tới địa chỉ này';
+        addressInput.parentNode.insertBefore(searchBtn, addressInput.nextSibling);
+
+        searchBtn.addEventListener("click", function() {
+          var address = addressInput.value.trim();
+          if (address.length > 5) {
+            searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tìm...';
+            var cleanAddress = address.replace("Đ.", "").replace("Đường", "").trim();
+            var searchQuery = encodeURIComponent(cleanAddress + ", Việt Nam");
+
+            fetch("https://nominatim.openstreetmap.org/search?format=json&q=" + searchQuery)
+              .then((response) => response.json())
+              .then((data) => {
+                searchBtn.innerHTML = '<i class="fas fa-search-location"></i> Trỏ bản đồ tới địa chỉ này';
+                if (data.length > 0) {
+                  var lat = parseFloat(data[0].lat), lon = parseFloat(data[0].lon);
+                  map.setView([lat, lon], 17);
+                  marker.setLatLng([lat, lon]);
+                  updateInputs(lat, lon);
+                } else {
+                  alert("❌ Bản đồ không hiểu địa chỉ này.\nMẹo: Kéo ghim thủ công!");
+                }
+              }).catch(() => searchBtn.innerHTML = '<i class="fas fa-search-location"></i> Trỏ bản đồ tới địa chỉ này');
+          }
+        });
+      }
+
+      // XEM TRƯỚC ẢNH
+      document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll('input[type="file"]').forEach(function (input) {
+          var previewContainer = document.createElement("div");
+          previewContainer.className = "d-flex flex-wrap gap-2 mt-2";
+          input.parentNode.insertBefore(previewContainer, input.nextSibling);
+
+          input.addEventListener("change", function (e) {
+            previewContainer.innerHTML = ""; 
+            var files = e.target.files;
+            if (files) {
+              Array.from(files).forEach(file => {
+                if (file.type.startsWith("image/")) {
+                  var reader = new FileReader();
+                  reader.onload = function (event) {
+                    var img = document.createElement("img");
+                    img.src = event.target.result;
+                    img.style.height = "70px"; img.style.width = "70px"; 
+                    img.style.borderRadius = "8px"; img.style.border = "2px dashed #00b14f"; img.style.objectFit = "cover";
+                    previewContainer.appendChild(img);
+                  };
+                  reader.readAsDataURL(file);
+                }
+              });
+            }
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

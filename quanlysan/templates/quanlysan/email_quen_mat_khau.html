@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        .container { font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px; }
+        .header { text-align: center; border-bottom: 2px solid #00b14f; padding-bottom: 10px; }
+        .content { padding: 20px; color: #333; line-height: 1.6; }
+        .btn-box { text-align: center; margin: 30px 0; }
+        .btn { background-color: #00b14f; color: white !important; padding: 12px 30px; text-decoration: none; font-weight: bold; border-radius: 50px; display: inline-block; }
+        .footer { font-size: 12px; color: #888; text-align: center; border-top: 1px solid #eee; padding-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2 style="color: #00b14f; margin: 0;">SÂN BÓNG 333</h2>
+        </div>
+        <div class="content">
+            <p>Chào bạn,</p>
+            <p>Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản liên kết với email này tại <strong>Sân 333</strong>.</p>
+            <p>Vui lòng nhấn vào nút bên dưới để tạo mật khẩu mới:</p>
+            
+            <div class="btn-box">
+                <a href="{{ protocol }}://{{ domain }}{% url 'password_reset_confirm' uidb64=uid token=token %}" class="btn">
+                    ĐẶT LẠI MẬT KHẨU
+                </a>
+            </div>
+            
+            <p>Link này có hiệu lực trong vòng <strong>24 giờ</strong>. Nếu bạn không yêu cầu đổi mật khẩu, hãy bỏ qua email này để giữ an toàn cho tài khoản.</p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2026 Hệ thống Sân bóng 333. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
